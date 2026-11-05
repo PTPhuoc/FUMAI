@@ -1,4 +1,4 @@
-appId: com.electron.app
+appId: com.fumai.app
 productName: fumai
 directories:
   buildResources: build
@@ -13,6 +13,7 @@ asarUnpack:
   - resources/**
 win:
   executableName: fumai
+  icon: build/fumai_icon.ico
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -26,6 +27,7 @@ mac:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
+  icon: build/fumai_icon.ico
 dmg:
   artifactName: ${name}-${version}.${ext}
 linux:
@@ -35,6 +37,7 @@ linux:
     - deb
   maintainer: electronjs.org
   category: Utility
+  icon: build/fumai_icon.ico
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false

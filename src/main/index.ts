@@ -1,7 +1,7 @@
 import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
+import icon from '../../resources/fumai_icon.png?asset'
 import { registerIpc } from '../ipc/registerIpc'
 import { initDatabase } from './db'
 
@@ -9,6 +9,7 @@ import { initDatabase } from './db'
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
+    title: 'FUMAI',
     width: 900,
     height: 670,
     show: false,
@@ -36,6 +37,10 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  if (process.platform === 'win32' || process.platform === 'linux') {
+    mainWindow.setIcon(icon)
+  }
 }
 
 // This method will be called when Electron has finished
@@ -43,7 +48,7 @@ function createWindow(): void {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+  electronApp.setAppUserModelId('com.fumai')
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.

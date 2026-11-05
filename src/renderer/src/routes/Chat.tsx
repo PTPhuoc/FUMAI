@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { Messages } from '../../../types/globals'
+import { CreateConversationInput, CreateMessageInput, DbConversation, Messages } from '../../../types/globals'
 import IChatDefault from '@renderer/components/inputs/IChatDefault'
 import BDefault from '@renderer/components/buttons/BDefault'
 import Markdown from '@renderer/components/Markdown'
+import { useSetting } from '@renderer/stores/useSetting'
+import { useChat } from '@renderer/stores/useChat'
 
 // src/renderer/src/routes/chat.tsx
 export const Route = createFileRoute('/Chat')({
@@ -20,6 +22,9 @@ function Chat(): React.JSX.Element {
   const [isAtBottom, setIsAtBottom] = useState(true)
   const containerRef = useRef<HTMLDivElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const model = useSetting((s) => s.model)
+  const conversationId = useChat((s) => s.conversationId)
+  const setConversationId = useChat((s) => s.setConversationId)
 
   useEffect(() => {
     const containerEl = containerRef.current
@@ -65,6 +70,24 @@ function Chat(): React.JSX.Element {
     requestAnimationFrame(() => {
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
     })
+  }
+
+  const handleSaveConversation = async (conversation: CreateConversationInput): Promise<void> => {
+    try {
+      const newConversation = await window.api.dbCreateConversation(conversation)
+      console.log(newConversation)
+      setConversationId(newConversation.id)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const handleSaveMessage = async (message: CreateMessageInput): Promise<void> => {
+    try {
+      await window.api.dbCreateMessage(message)
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {

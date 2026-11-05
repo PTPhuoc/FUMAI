@@ -2,9 +2,7 @@
   "version": "7",
   "dialect": "sqlite",
   "id": "08426cc5-fdc2-4162-8582-7bf4b28e0720",
-  "prevIds": [
-    "00000000-0000-0000-0000-000000000000"
-  ],
+  "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
     {
       "name": "conversations",
@@ -117,13 +115,9 @@
     {
       "table": "messages",
       "name": "fk_messages_conversation_id_conversations_id_fk",
-      "columns": [
-        "conversation_id"
-      ],
+      "columns": ["conversation_id"],
       "tableTo": "conversations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -132,18 +126,14 @@
     {
       "table": "conversations",
       "name": "conversations_pk",
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "entityType": "pks"
     },
     {
       "table": "messages",
       "name": "messages_pk",
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "entityType": "pks"
     }

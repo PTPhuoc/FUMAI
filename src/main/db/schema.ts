@@ -5,8 +5,13 @@ export const conversations = sqliteTable('conversations', {
   id: text('id').primaryKey(),
   title: text('title').notNull(),
   model: text('model').notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull()
+  titleSource: text('title_source', {
+    enum: ['auto', 'generated', 'user']
+  })
+    .notNull()
+    .default('auto'),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull()
 })
 
 export const messages = sqliteTable('messages', {
@@ -16,5 +21,5 @@ export const messages = sqliteTable('messages', {
     .references(() => conversations.id, { onDelete: 'cascade' }),
   role: text('role', { enum: ['user', 'assistant', 'system', 'tool'] }).notNull(),
   content: text('content').notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull()
+  createdAt: integer('created_at').notNull()
 })

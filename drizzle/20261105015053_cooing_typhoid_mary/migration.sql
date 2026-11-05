@@ -1,0 +1,1 @@
+ALTER TABLE `conversations` DROP COLUMN `title_generate_attempts`;

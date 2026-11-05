@@ -1,10 +1,10 @@
-// src/main/db/client.ts
 import { drizzle } from 'drizzle-orm/node-sqlite'
 import { DatabaseSync } from 'node:sqlite'
 import { app } from 'electron'
 import { join } from 'path'
 import { relations } from './relations'
 
+// src/main/db/client.ts
 const dbPath = join(app.getPath('userData'), 'chat.db')
 
 const sqlite = new DatabaseSync(dbPath)

@@ -2,15 +2,31 @@ import { ipcMain } from 'electron'
 import {
   createConversation,
   changeTitle,
-  modelChangeTitle
+  modelChangeTitle,
+  getConversations,
+  deleteConversation
 } from '../main/db/repositories/conversations'
 import { createMessage } from '../main/db/repositories/message'
 import { CreateConversationInput, CreateMessageInput } from '../types/globals'
 
 // src/ipc/database.ts
+
+// Conversation
+export const dbGetConversations = (): void => {
+  ipcMain.handle('dbGetConversations', async () => {
+    return getConversations()
+  })
+}
+
 export const dbCreateConversation = (): void => {
   ipcMain.handle('dbCreateConversation', async (_event, input: CreateConversationInput) => {
     return createConversation(input)
+  })
+}
+
+export const dbDeleteConversation = (): void => {
+  ipcMain.handle('dbDeleteConversation', async (_event, conversationId: string) => {
+    return deleteConversation(conversationId)
   })
 }
 
@@ -25,6 +41,8 @@ export const dbChangeTitle = (): void => {
     return changeTitle(conversationId, title)
   })
 }
+
+// Message
 
 export const dbCreateMessage = (): void => {
   ipcMain.handle('dbCreateMessage', async (_event, input: CreateMessageInput) => {

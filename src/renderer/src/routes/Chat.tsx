@@ -1,11 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { CreateConversationInput, CreateMessageInput, DbConversation, Messages } from '../../../types/globals'
+import {
+  CreateConversationInput,
+  CreateMessageInput,
+  DbConversation,
+  Messages
+} from '../../../types/globals'
 import IChatDefault from '@renderer/components/inputs/IChatDefault'
 import BDefault from '@renderer/components/buttons/BDefault'
 import Markdown from '@renderer/components/Markdown'
 import { useSetting } from '@renderer/stores/useSetting'
 import { useChat } from '@renderer/stores/useChat'
+import { useConversation } from '@renderer/stores/useConversation'
 
 // src/renderer/src/routes/chat.tsx
 export const Route = createFileRoute('/Chat')({
@@ -24,7 +30,9 @@ function Chat(): React.JSX.Element {
   const bottomRef = useRef<HTMLDivElement>(null)
   const model = useSetting((s) => s.model)
   const conversationId = useChat((s) => s.conversationId)
+  const conversations = useConversation((s) => s.conversations)
   const setConversationId = useChat((s) => s.setConversationId)
+  const setConversations = useConversation((s) => s.setConversations)
 
   useEffect(() => {
     const containerEl = containerRef.current
@@ -52,39 +60,76 @@ function Chat(): React.JSX.Element {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [history, isAtBottom])
 
-  const handleChat = async (messages: Messages[]): Promise<void> => {
+  const handleChat = async (messages: Messages[], conversationId: string): Promise<void> => {
     try {
       const reply = await window.api.chatDefault(messages)
       setHistory((prev) => [...prev, reply])
+      await handleSaveMessage({
+        conversationId: conversationId,
+        role: reply.role,
+        content: reply.content
+      })
     } catch (error) {
       console.log(error)
     }
   }
-
-  const handleSend = (): void => {
-    if (!chatValue.content.trim()) return
-    const newHistory = [...history, chatValue]
-    setHistory(newHistory)
-    setChatValue({ role: 'user', content: '' })
-    void handleChat(newHistory)
-    requestAnimationFrame(() => {
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-    })
-  }
-
-  const handleSaveConversation = async (conversation: CreateConversationInput): Promise<void> => {
+  const handleSaveConversation = async (
+    conversation: CreateConversationInput
+  ): Promise<string | null> => {
     try {
       const newConversation = await window.api.dbCreateConversation(conversation)
-      console.log(newConversation)
-      setConversationId(newConversation.id)
+      setConversations(
+        [...conversations, newConversation].sort((a, b) => b.updatedAt - a.updatedAt)
+      )
+      return newConversation.id
     } catch (error) {
       console.error(error)
+      return null
     }
   }
 
   const handleSaveMessage = async (message: CreateMessageInput): Promise<void> => {
     try {
       await window.api.dbCreateMessage(message)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const handleClientSave = (history: Messages[]): void => {
+    setHistory(history)
+    setChatValue({ role: 'user', content: '' })
+    requestAnimationFrame(() => {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    })
+  }
+
+  const handleSend = async (): Promise<void> => {
+    if (!chatValue.content.trim()) return
+    const newHistory = [...history, { ...chatValue, content: chatValue.content.trim() }]
+    handleClientSave(newHistory)
+    handleDBSave(newHistory, chatValue.content.trim())
+  }
+
+  const handleDBSave = async (history: Messages[], content: string): Promise<void> => {
+    let convId = conversationId
+    if (!convId) {
+      convId = await handleSaveConversation({ model: model, title: content })
+      if (!convId) return
+      setConversationId(convId)
+    }
+    await handleChat(history, convId)
+  }
+
+  const modelChangeTitle = async (conversation: DbConversation): Promise<void> => {
+    try {
+      const userMessage = history.find((m) => m.role === 'user')
+      if (!userMessage) return
+      const reply = await window.api.cvtGenerateTitle(userMessage.content)
+      const newCvt = { ...conversation, title: reply.content, titleSource: 'generated' as const }
+      const cvtChanged = [...conversations.filter((c) => c.id !== conversation.id), newCvt]
+      setConversations(cvtChanged)
+      await window.api.dbModelChangeTitle(conversation.id, reply.content)
     } catch (error) {
       console.error(error)
     }
@@ -98,6 +143,27 @@ function Chat(): React.JSX.Element {
       handleSend()
     }
   }
+
+  useEffect(() => {
+    if (conversations.length > 0 && conversationId) {
+      const thisConversation = conversations.find((c) => c.id === conversationId)
+      if (thisConversation && thisConversation.titleSource === 'auto') {
+        const modelMessage = history.find((m) => m.role === 'assistant')
+        if (!modelMessage) return
+        modelChangeTitle(thisConversation)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId, history])
+
+  useEffect(() => {
+    console.log('History: ', history)
+  }, [history])
+
+  useEffect(() => {
+    console.log('Conversations: ', conversations)
+  }, [conversations])
+
   return (
     <div className="flex flex-col w-full h-full gap-2 items-center min-w-0">
       <div

@@ -12,13 +12,22 @@ declare global {
   interface Window {
     electron: ElectronAPI
     api: {
+      // System
       chatDefault: (messages: Messages[]) => Promise<Messages>
-      cGenerateTitle: (message: string) => Promise<Messages>
+      cvtGenerateTitle: (message: string) => Promise<Messages>
+
+      // DB Conversation
+      dbGetConversations: () => Promise<DbConversation[]>
+      dbCreateConversation: (input: CreateConversationInput) => Promise<DbConversation>
+      dbDeleteConversation: (conversationId: string) => Promise<InforHandle>
       dbModelChangeTitle: (conversationId: string, title: string) => Promise<InforHandle>
       dbChangeTitle: (conversationId: string, title: string) => Promise<InforHandle>
+
+      // DB Message
       dbCreateMessage: (input: CreateMessageInput) => Promise<DbConversation>
+
+      // Security
       sURL: (url: string) => Promise<void>
-      dbCreateConversation: (input: CreateConversationInput) => Promise<DbConversation>
     }
   }
 }

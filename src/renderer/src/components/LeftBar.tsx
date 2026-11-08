@@ -1,14 +1,42 @@
 import { Link } from '@tanstack/react-router'
-import { House, MessageSquareText, PanelLeftClose, PanelRightClose, Settings } from 'lucide-react'
+import {
+  House,
+  ListClock,
+  MessageSquareText,
+  PanelLeftClose,
+  PanelRightClose,
+  Settings
+} from 'lucide-react'
 import { useUI } from '../stores/useUI'
+import { useConversation } from '@renderer/stores/useConversation'
+import { useEffect } from 'react'
+import ConverationItem from './ConverationItem'
 
 // src/renderer/src/components/LeftBar.tsx
 export default function LeftBar(): React.JSX.Element {
   const isMainBar = useUI((s) => s.isMainBar)
   const toggleMainBar = useUI((s) => s.toggleMainBar)
+  const { isLoading, setLoad, conversations, setConversations } = useConversation((s) => s)
+
+  const handleGetConveration = async (): Promise<void> => {
+    try {
+      setLoad(true)
+      const conversations = await window.api.dbGetConversations()
+      setConversations(conversations)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoad(false)
+    }
+  }
+
+  useEffect(() => {
+    handleGetConveration()
+  }, [])
+
   return (
     <div
-      className={`flex flex-col justify-between gap-2 p-1 ${isMainBar ? 'min-w-0 duration-200' : 'min-w-50 duration-100'}  h-full bg-zinc-800 ease-in-out`}
+      className={`flex flex-col justify-between gap-2 p-1 ${isMainBar ? 'min-w-0 duration-200' : 'min-w-50 max-w-50 duration-100'}  h-full bg-zinc-800 ease-in-out`}
     >
       <div className="flex flex-col gap-2">
         <button
@@ -43,6 +71,28 @@ export default function LeftBar(): React.JSX.Element {
             CHAT
           </p>
         </Link>
+        <div className="flex flex-col gap-2">
+          {isMainBar ? (
+            <div className="flex items-center h-10 px-2 py-1 border-y-2 border-zinc-700">
+              <ListClock className="w-5 h-5 " />
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 px-2 py-1">
+              <p className="shrink-0">CHAT HISTORY</p>
+              <div className="w-full h-px bg-white" />
+            </div>
+          )}
+
+          {isLoading ? (
+            <>
+              <div className="h-10 bg-zinc-500 rounded-md animate-pulse" />
+              <div className="h-10 bg-zinc-500 rounded-md animate-pulse" />
+              <div className="h-10 bg-zinc-500 rounded-md animate-pulse" />
+            </>
+          ) : (
+            !isMainBar && conversations.map((c) => <ConverationItem key={c.id} conversation={c} />)
+          )}
+        </div>
       </div>
       <Link
         to="/Settings"

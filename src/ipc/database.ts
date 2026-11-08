@@ -43,7 +43,6 @@ export const dbChangeTitle = (): void => {
 }
 
 // Message
-
 export const dbCreateMessage = (): void => {
   ipcMain.handle('dbCreateMessage', async (_event, input: CreateMessageInput) => {
     return createMessage(input)
